@@ -1,8 +1,8 @@
 EcoMAPS_R <- function(
 
-coverage_setup,                                           ### List of covariate files and the names of the variables within them to be used in the model 
+PredVars,
 time_slices,                                              ### defines which time slice to use for each input data set. eg precip runs 1970-2012 time_slice 1 = 1970
-progress_rep_file = "progress.txt",                       ### Name of the file where the progress updates will be sent to
+progress_rep_file = "progress.txt",
 user_name = "Test Harness",                               ### details of the user name to pass to the resulting netcdf header
 email_address = "test@test.com",                          ### email address of user to use as contact info in netcdf header
 csv_file = "InputRDataFile_altitudeplusLCM2007.csv",       ### name of the point based csv file from the spatial concatenation in python
@@ -17,18 +17,45 @@ model_variable                                            ### name of variable (
 
 ){
 
+    
     #load R libraries that are needed
     require(nlme)
     require(mgcv)
     require(ncdf)
     require(ncdf4)
     require(gdata)
+    require(fields) 
+        
     
-
+    
     progress_fn("Initiating R session and loading libraries",progress_rep_file)
 
     #set contrasts to match those used in SAS as CS has always used this approach
     options(contrasts = c(factor = "contr.SAS",ordered = "contr.poly"))
+
+
+    
+    cov_setup <- function(PredVars){
+    
+        dat=read.csv("variableNamesType.csv")
+        coverage_setup=list()  ; nms=c()
+        k=1
+        
+        for(var in PredVars){
+            rw_id = which(dat$VARIABLE.NAME==var)
+            coverage_setup[[k]]=list(as.character(dat$netCDF.VARIABLE[rw_id]),as.character(dat$VARIABLE.TYPE[rw_id]))
+            nms=c(nms,as.character(dat$THREDDS.URL[rw_id]))
+        
+            k=k+1
+        
+        }
+        names(coverage_setup)=nms
+        return(coverage_setup)
+    
+    }
+
+
+    coverage_setup=cov_setup(PredVars)
 
     covariate_data = list()
 
@@ -40,7 +67,9 @@ model_variable                                            ### name of variable (
         url = names(coverage_setup)[i]
 
         covariate_data[[i]]$linkfile = url
-        covariate_data[[i]]$vars = c(coverage_setup[[url]])
+        covariate_data[[i]]$vars = c(coverage_setup[[url]][[1]])
+        covariate_data[[i]]$data_type = c(coverage_setup[[url]][[2]])
+        
     }
 
     #read in concatenated point data (simon's python script does this)
@@ -65,7 +94,7 @@ model_variable                                            ### name of variable (
     progress_fn("Checking distribution of Response Variable",progress_rep_file)
 
     #test normality of response if it is continuos. if normality test fails, ensure that a Gamma error distribution is used.
-    if(data_type=="Cont"){
+    if(data_type=="Cont" & length(newdat$response)<4999){
         
         ##use shapiro  wilks test to assess normality
         norm.test.res <- shapiro.test(newdat$response)
@@ -85,7 +114,7 @@ model_variable                                            ### name of variable (
     progress_fn("Loading data into R",progress_rep_file)
 
     ##set up empty vectors for storage
-    n_north = n_east= spat_res = nm_var = dunits = c()
+    n_north = n_east= spat_res = nm_var = dunits = var_data_type = c()
     tmp.array = north = east = list()
 
     cn <- 1
@@ -109,6 +138,7 @@ model_variable                                            ### name of variable (
             if(class(north[[cn]])=="try-error"){north[[cn]] <- try(ncvar_get(cov_dat, "northing"));bv=2}
             if(class(north[[cn]])=="try-error"){north[[cn]] <- try(ncvar_get(cov_dat, "Northing"));bv=3}
             if(class(north[[cn]])=="try-error"){north[[cn]] <- try(ncvar_get(cov_dat, "NORTHING"));bv=4}
+            if(class(north[[cn]])=="try-error"){north[[cn]] <- try(ncvar_get(cov_dat, "y"));bv=5}
             #store the dimension of this vertical axis
             n_north[cn] <- dim(north[[cn]])
                        
@@ -117,6 +147,8 @@ model_variable                                            ### name of variable (
             if(class(east[[cn]])=="try-error"){east[[cn]] <- try(ncvar_get(cov_dat, "easting"))}
             if(class(east[[cn]])=="try-error"){east[[cn]] <- try(ncvar_get(cov_dat, "Easting"))}
             if(class(east[[cn]])=="try-error"){east[[cn]] <- try(ncvar_get(cov_dat, "EASTING"))}
+            if(class(east[[cn]])=="try-error"){east[[cn]] <- try(ncvar_get(cov_dat, "x"))}
+            
             #store the dimension of this horizontal axis
             n_east[cn] <- dim(east[[cn]])
 
@@ -136,7 +168,7 @@ model_variable                                            ### name of variable (
             ###retrieve meta-data from netcdf files
             ## extract the units of the current variable 
             dunits[cn] <- ncatt_get(cov_dat, nm_var[cn], "units")$hasatt
-
+            var_data_type[cn] <- covariate_data[[i]]$data_type[vn]
             ## extract the value used to fill in missing data for the current variable
             fillvalue <- ncatt_get(cov_dat, nm_var[cn], "_FillValue")
 
@@ -163,8 +195,8 @@ model_variable                                            ### name of variable (
     ###need to know which variables are factors
 
       ##if the variable has an associated unit, it is a continous numberic variable, else it is a factor
-      factor_vars <- nm_var[dunits==0]
-      smooth_vars <- nm_var[dunits!=0]
+      factor_vars <- nm_var[var_data_type=="class"]
+      smooth_vars <- nm_var[var_data_type=="cont"]
 
 
       factor_form <- paste(paste("as.factor(",factor_vars,")",sep=""),collapse="+")
@@ -175,15 +207,15 @@ model_variable                                            ### name of variable (
       ##paste togetehr the factor variable terms and the numeric smooth terms into a model formula to submit to the model
       ##add additional term to capture purely large scale spatial dependence
       if(length(factor_vars)>0){
-         form <- paste("response~1",factor_form,"te(easting,northing)",sep="+")
+         form <- paste("response~1",factor_form,"te(EASTING,NORTHING)",sep="+")
          if(length(smooth_vars)>0){
             form <- paste(form,smooth_form,sep="+")
          }
       }else{
          if(length(smooth_vars)>0){
-             form <- paste("response~1",smooth_form,"te(easting,northing)",sep="+")
+             form <- paste("response~1",smooth_form,"te(EASTING,NORTHING)",sep="+")
          }else{
-            form <- paste("response~1","te(easting,northing)",sep="+")
+            form <- paste("response~1","te(EASTING,NORTHING)",sep="+")
          }
       }
 
@@ -266,18 +298,27 @@ model_variable                                            ### name of variable (
           #### predict model using the full covariate set at the common resolution
           pred_points <- expand.grid(north[[resuse]],east[[resuse]])
           newd=data.frame(easting=pred_points[,2],northing=pred_points[,1])
-
+          newd$EASTING=newd$easting ; newd$NORTHING=newd$northing
           for(cov_i in 1:length(tmp.array)){
             newd <- cbind(newd,unmatrix(tmp.array[[cov_i]],byrow=TRUE))
           }
 
-          names(newd)[-c(1:2)]=nm_var
+          names(newd)[-c(1:4)]=nm_var
+
+          #to ensure all fatcor levels are represented, find all rows that were excluded in the model
+          cls <- match(c(factor_vars,smooth_vars),names(newdat))
+          rem_na_rows <- which(apply(newdat[,cls],1,function(X){any(is.na(X))}))
+
 
           ##set any values outside the covariate space to NA. Particularly important for factors
 
           for(fv in factor_vars){
             c1=which(names(newd)==fv) ; c2=which(names(newdat)==fv)
-            idx=which(!is.element(newd[,c1],unique(newdat[,c2])))
+            if(length(rem_na_rows)>0){
+               idx=which(!is.element(newd[,c1],unique(newdat[-rem_na_rows,c2])))
+            }else{
+               idx=which(!is.element(newd[,c1],unique(newdat[,c2]))) 
+            }
             newd[idx,c1]=NA
             newd[,c1]=as.factor(as.character(newd[,c1]))
           }
@@ -310,10 +351,10 @@ model_variable                                            ### name of variable (
           par(mfrow=c(1,2))
           
           qtsm=round(quantile(c(out_mat_pred),c(0.1,0.9),na.rm=TRUE))
-          brk=c(seq(qtsm[1],qtsm[2],length=10),max(out_mat_pred,na.rm=TRUE))
+          brk=c(min(out_mat_pred,na.rm=TRUE),seq(qtsm[1],qtsm[2],length=9),max(out_mat_pred,na.rm=TRUE))
           #brk=c(seq(0,50,by=10),100)
-          cols=c("lightgoldenrod1","lightgoldenrod3","burlywood3","darkgoldenrod","lightsalmon4","darkorange4")
-          cols=terrain.colors(10)
+          #cols=c("lightgoldenrod1","lightgoldenrod3","burlywood3","darkgoldenrod","lightsalmon4","darkorange4")
+          cols=tim.colors(10)
           #produce image of the mean
           par(mai=c(0,0,0.4,0));image(east[[resuse]],rev(north[[resuse]]),(out_mat_pred[,1300:1]),asp=1,main="",col=cols,xaxt="n",breaks=brk,xlab="",yaxt="n",ylab="")
            
@@ -504,9 +545,12 @@ model_variable                                            ### name of variable (
     ncatt_put(ncnew, 0, "Model_pVals", paste(round(c((mod_sum$pTerms.table[,3]),(mod_sum$s.table[,4])),4),collapse=","))
     
     ##finish and close the created netcdf file
+    #nc_close(temp_netcdf_file)
     nc_close(ncnew)
 }
 
 #########################
 #########################
+
+
 
