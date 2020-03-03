@@ -10,9 +10,9 @@ mult_year = NULL,                                         ### variable in the so
 rand_grp = NULL,                                          ### variable in the source data set that defines any grouping structure present in the data that needs to be accounted for
 data_type = "Cont",                                       ### type of variable that is to be modelleds - continuous, binary or count
 model_variable,																	### name of variable (as it appears in csv file) that is to be modelled
-saveplots=TRUE     													### logical. should plots be saved                                      
+saveplots=TRUE,     													### logical. should plots be saved                                      
 map_image_file = "map_output.png",                        ### name to give the png of the map image produced
-fit_image_file = "fit_output.png",                        ### name to give the png of the model summary plots produced
+fit_image_file = "fit_output.png"                        ### name to give the png of the model summary plots produced
 ){
 
     
