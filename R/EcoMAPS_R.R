@@ -21,7 +21,7 @@ model_variable                                            ### name of variable (
     #load R libraries that are needed
     require(nlme)
     require(mgcv)
-    require(ncdf)
+    #require(ncdf)
     require(ncdf4)
     require(gdata)
     require(fields) 
