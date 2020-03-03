@@ -37,7 +37,7 @@ model_variable                                            ### name of variable (
     
     cov_setup <- function(PredVars){
 			
-			data(variableNamesType)
+			#data(variableNamesType)
         dat=variableNamesType
 		
         coverage_setup=list()  ; nms=c()
