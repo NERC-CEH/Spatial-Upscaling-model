@@ -454,10 +454,10 @@ model_variable                                            ### name of variable (
     ## open up one of the covariate files with same spatial resolution as derived map to use as a template
     v=unlist(covariate_data)
     fl=v[which(names(v)[1:which(v==nm_var[resuse])]=="linkfile")]
-    download.file(url=fl,destfile=temp_netcdf_file, mode="wb")
+    download.file(url=fl,destfile="tempres.nc", mode="wb")
 
     ## open up the connection to the file to use as a template
-    cov_dat <- nc_open(temp_netcdf_file)
+    cov_dat <- nc_open("tempres.nc")
 
     ###### define all the variable to go into the netcdf file
 
