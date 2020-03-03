@@ -15,8 +15,8 @@ EcoMAPS_R(coverage_setup,time_slices,progress_rep_file = "progress.txt",user_nam
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{coverage_setup}{
-List of covariate files and the names of the variables within them to be used in the model 
+  \item{PredVars}{
+Names of covariates to be used in the model 
 }
   \item{time_slices}{
 Defines which time slice to use for each input data set. eg precip runs 1970-2012 time_slice 1 = 1970
@@ -27,20 +27,8 @@ Name of the file where the progress updates will be sent to
   \item{user_name}{
 Details of the user name to pass to the resulting netcdf header
 }
-  \item{email_address}{
-Email address of user to use as contact info in netcdf header
-}
   \item{csv_file}{
 Name of the point based csv file from the spatial concatenation in python
-}
-  \item{map_image_file}{
-Name to give the png of the map image produced
-}
-  \item{fit_image_file}{
-Name to give the png of the model summary plots produced
-}
-  \item{temp_netcdf_file}{
-Name of netcdf files that are stored temporarily during modelling 
 }
   \item{output_netcdf_file}{
 Name of the final netcdf file that is written out
@@ -57,6 +45,16 @@ Type of variable that is to be modelled - continuous, binary or count
   \item{model_variable}{
 Name of variable (as it appears in csv file) that is to be modelled
 }
+  \item{saveplots}{
+Logical, specifying whether plots should be saved to file
+}
+  \item{map_image_file}{
+Name to give the png of the map image produced
+}
+  \item{fit_image_file}{
+Name to give the png of the model summary plots produced
+}
+
 }
 \details{
 Currently uses a GAMM to do the modelling with the spatial corellation accounted for by the inclusion of a tensor product msmooth interaction between the spatial axes. Variation os taken straight from the model currently, but this will hopefuilly be replaced by bootstrapping in the near future. 
@@ -74,21 +72,23 @@ Peter Henrys
 ##wont work
 
 #EcoMAPS_R(
-#coverage_setup = list("http://thredds-prod.nerc-lancaster.ac.uk/thredds/fileServer/altitude1000mdetail/BlockMeanGrid_1000.nc" = list("altitude")),
+#PredVars=c("elevation1km","LCM2007_1kmDomTar","airTemperature","precipitation"),
 #time_slices=NULL,
 #progress_rep_file = "progress.txt",
 #user_name = "Test Harness" ,
-#email_address = "test@test.com",
-#csv_file = "InputRDataFile_altitudeplusLCM2007.csv",
-#map_image_file = "map_output.png",
-#fit_image_file = "fit_output.png",
-#temp_netcdf_file = "temp.nc",
-#output_netcdf_file = "output.nc",
+#csv_file = "OutVars_EbergN_X.csv",
+#output_netcdf_file = "EbergN.nc",
 #mult_year <- NULL , 
-#rand_grp <- "SERIES_NUM" ,
+#rand_grp <- "EASTING_km" ,
 #data_type <- "Cont" ,
-#model_variable="loi"
+#model_variable="EbergN",
+#saveplots=TRUE,
+#map_image_file = "map_ebergN.png",
+#fit_image_file = "fit_ebergN.png"
 #)
+
+
+
 
 
 }

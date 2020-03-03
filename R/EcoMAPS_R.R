@@ -4,17 +4,15 @@ PredVars,
 time_slices,                                              ### defines which time slice to use for each input data set. eg precip runs 1970-2012 time_slice 1 = 1970
 progress_rep_file = "progress.txt",
 user_name = "Test Harness",                               ### details of the user name to pass to the resulting netcdf header
-email_address = "test@test.com",                          ### email address of user to use as contact info in netcdf header
-csv_file = "InputRDataFile_altitudeplusLCM2007.csv",       ### name of the point based csv file from the spatial concatenation in python
-map_image_file = "map_output.png",                        ### name to give the png of the map image produced
-fit_image_file = "fit_output.png",                        ### name to give the png of the model summary plots produced
-temp_netcdf_file = "temp.nc",                             ### name of netcdf files that are stored temporarily during modelling 
+csv_file,													       ### name of the point based csv file from the spatial concatenation in python
 output_netcdf_file = "output.nc",                         ### name of the final netcdf file that is written out
 mult_year = NULL,                                         ### variable in the source data set that defines the temporal aspect of the data 
 rand_grp = NULL,                                          ### variable in the source data set that defines any grouping structure present in the data that needs to be accounted for
 data_type = "Cont",                                       ### type of variable that is to be modelleds - continuous, binary or count
-model_variable                                            ### name of variable (as it appears in csv file) that is to be modelled
-
+model_variable,																	### name of variable (as it appears in csv file) that is to be modelled
+saveplots=TRUE     													### logical. should plots be saved                                      
+map_image_file = "map_output.png",                        ### name to give the png of the map image produced
+fit_image_file = "fit_output.png",                        ### name to give the png of the model summary plots produced
 ){
 
     
@@ -25,8 +23,10 @@ model_variable                                            ### name of variable (
     require(ncdf4)
     require(gdata)
     require(fields) 
-        
-    
+
+	#specify a temporary name to store netcdf files to
+    temp_netcdf_file = "temp.nc" 
+
     
     progress_fn("Initiating R session and loading libraries",progress_rep_file)
 
@@ -347,7 +347,7 @@ model_variable                                            ### name of variable (
         progress_fn("Writing map image",progress_rep_file)
         
         ## produce graphic of the modelled output and save as a png file 
-        png(height=720,width=700,file=map_image_file)
+        windows(height=720,width=700)
         
           #split the plotting windoe into two - one for mean, one for variance
           par(mfrow=c(1,2))
@@ -388,13 +388,15 @@ model_variable                                            ### name of variable (
           legend("topright",legend=as.character(lb),col=cols,pch=15,pt.cex=2.4,bty="n",title=paste("Variance of ",model_variable,sep=""),cex=0.75)
 
         #write out the graphics window
-        dev.off()
-
+        if(saveplots){
+			dev.copy(png,map_image_file,height=720,width=700)
+			dev.off()
+			}
 
         progress_fn("Writing fit image",progress_rep_file)
        
         ## produce a goodness of fit plots
-        png(height=320,width=700,file=fit_image_file)
+        windows(height=320,width=700)
           par(mfrow=c(1,2))
           
           #scatter plot of observed versus fitted values
@@ -403,7 +405,11 @@ model_variable                                            ### name of variable (
           #historgram of model residuals
           hist(mod$gam$y-mod$gam$fitted.values,main="",xlab="Model Residuals")
 
-        dev.off()
+        if(saveplots){
+			dev.copy(png,fit_image_file,height=320,width=700)
+			dev.off()
+			}
+
         
         ## Ste info of model fit for the netCDF file. 
         ## specifically, AIC, RMSE, Rsquared, model formula and summary table for coefficients and p values.
@@ -527,7 +533,7 @@ model_variable                                            ### name of variable (
 
     ncatt_put(ncnew, 0, "creator_name", user_name)
     ncatt_put(ncnew, 0, "creator_url", "http://www.ceh.ac.uk//")
-    ncatt_put(ncnew, 0, "creator_email", email_address)
+    ncatt_put(ncnew, 0, "creator_email", "Not Specified")
 
     ncatt_put(ncnew, 0, "geospatial_lon_min", ncatt_get(cov_dat, 0, "geospatial_lon_min")$value, prec="double")
     ncatt_put(ncnew, 0, "geospatial_lat_min", ncatt_get(cov_dat, 0, "geospatial_lat_min")$value, prec="double")
