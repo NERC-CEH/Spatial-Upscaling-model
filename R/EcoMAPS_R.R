@@ -3,6 +3,7 @@
 
 EcoMAPS_R <- function(
 PredVars,
+covs.local=FALSE,
 time_slices,
 csv_file,
 map_image_file,
@@ -28,7 +29,7 @@ write_2_netcdf=TRUE
 	print("Loading data and covariate information")
 	dat = read.csv(csv_file)
     
-	coverage_setup <- cov_setup(PredVars)
+	coverage_setup <- cov_setup(PredVars,covs.local=covs.local)
 	  
 	covariate_data <- cov_data_def(coverage_setup)
 	

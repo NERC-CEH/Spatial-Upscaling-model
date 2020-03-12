@@ -1,5 +1,5 @@
 
-cov_setup <- function(PredVars){
+cov_setup <- function(PredVars,covs.local=FALSE){
 			
 			if(covs.local){
 				dat=variableNamesTypeLocal

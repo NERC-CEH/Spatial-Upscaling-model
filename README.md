@@ -4,7 +4,7 @@ R code and library for ecomaps. Uses spatial statistical model to upscale point 
 Install using 
 ```
 library(devtools)
-install.github("NERC-CEH/Spatial-Upscaling-model")
+install_github("NERC-CEH/Spatial-Upscaling-model")
 library(EcoMAPS)
 ```
 OR Build the source code using R CMD build EcoMAPS ; then install using R CMD INSTALL --build EcoMAPS on command line. 
