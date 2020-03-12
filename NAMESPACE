@@ -1,3 +1,4 @@
 import(stats)
 
-export(progress_fn,EcoMAPS_R)
+export(progress_fn,EcoMAPS_R,cov_setup,cov_data_def,def_dist_fam,get_cov_dat,construct_form,run_mod,make_preds,plot_map,
+plot_fit,mod_summary,writeNCDF)
