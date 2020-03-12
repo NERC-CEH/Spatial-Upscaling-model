@@ -1,8 +1,8 @@
 Package: EcoMAPS
 Type: Package
 Title: Spatial upscaling of point datasets to GB coverage 
-Version: 1.0.1
-Date: 2019-3-03
+Version: 1.0.2
+Date: 2020-12-03
 Author: Peter Henrys
 Maintainer: Peter Henrys <pehn@ceh.ac.uk>
 Depends: nlme, mgcv, fields, ncdf4, gdata

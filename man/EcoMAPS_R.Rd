@@ -4,14 +4,26 @@
 
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Main EcoMAPS function to produce GB maps from point data
+Main EcoMAPS wrapper function to produce GB maps from point data
 }
 \description{
 Uses spatial statistical model to upscale point data to GB coverage mapped data sets using detailed covariate information}
 \usage{
-EcoMAPS_R(coverage_setup,time_slices,progress_rep_file = "progress.txt",user_name = "Test Harness",                              
-   email_address = "test@test.com",csv_file = "InputRDataFile_altitudeplusLCM2007.csv",map_image_file = "map_output.png",                  fit_image_file = "fit_output.png",temp_netcdf_file = "temp.nc",output_netcdf_file = "output.nc",mult_year = NULL,                       rand_grp = NULL,data_type = "Cont",model_variable)                                            
-
+EcoMAPS_R(
+PredVars=c("elevation1km","LCM2007_1kmDomTar","airTemperature","precipitation"),
+time_slices=NULL,
+csv_file = "CS_LOI_Point_PlusCovs.csv",
+map_image_file = "map_plot.png",
+fit_image_file = "fit_plot.png",
+temp_netcdf_file = "temp",
+output_netcdf_file = "output.nc",
+mult_year <- NULL, 
+rand_grp <- "SERIES_NUM",
+data_type <- "Cont",
+model_variable="loi",
+saveplots=TRUE,
+write_2_netcdf=TRUE
+)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -21,17 +33,14 @@ Names of covariates to be used in the model
   \item{time_slices}{
 Defines which time slice to use for each input data set. eg precip runs 1970-2012 time_slice 1 = 1970
 }
-  \item{progress_rep_file}{
-Name of the file where the progress updates will be sent to
-}
-  \item{user_name}{
-Details of the user name to pass to the resulting netcdf header
-}
   \item{csv_file}{
 Name of the point based csv file from the spatial concatenation in python
 }
   \item{output_netcdf_file}{
 Name of the final netcdf file that is written out
+}
+  \item{temp_netcdf_file}{
+Name of the temporary file to write intermittent files to
 }
   \item{mult_year}{
 Variable in the source data set that defines the temporal aspect of the data 
@@ -54,7 +63,9 @@ Name to give the png of the map image produced
   \item{fit_image_file}{
 Name to give the png of the model summary plots produced
 }
-
+  \item{write_2_netcdf}{
+Logical. should a netcdf file of the predicted map be written out to file specified by output_netcdf_file
+}
 }
 \details{
 Currently uses a GAMM to do the modelling with the spatial corellation accounted for by the inclusion of a tensor product msmooth interaction between the spatial axes. Variation os taken straight from the model currently, but this will hopefuilly be replaced by bootstrapping in the near future. 
