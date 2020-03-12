@@ -1,17 +1,22 @@
 
 writeNCDF <- function(covariate_data,nm_var,resuse,north,east,model_variable,file,
-				out_mat_pred,out_mat_var,mod_formula,rmse,r2){
+				out_mat_pred,out_mat_var,mod_formula,rmse,r2,covs.local){
 
 		## open up one of the covariate files with same spatial resolution as derived map to use as a template
     v=unlist(covariate_data)
     fl=v[which(names(v)[1:which(v==nm_var[resuse])]=="linkfile")]
-    #download.file(url=fl,destfile="tempres.nc", mode="wb")
+    
+		if(!covs.local){
+			download.file(url=fl,destfile="tempres.nc", mode="wb")
 
-    ## open up the connection to the file to use as a template
-    #cov_dat <- nc_open("tempres.nc")
-	cov_dat <- nc_open(fl)
-
-	output_netcdf_file = file
+		
+			## open up the connection to the file to use as a template
+			cov_dat <- nc_open("tempres.nc")
+		}else{
+		cov_dat <- nc_open(fl)
+		}
+		
+		output_netcdf_file = file
     ###### define all the variable to go into the netcdf file
 
     ## define the spatial coordinates of the derived map

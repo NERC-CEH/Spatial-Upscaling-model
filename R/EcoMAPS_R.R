@@ -64,7 +64,7 @@ write_2_netcdf=TRUE
 	print("Writing file to netcdf") 
 	writeNCDF(covariate_data=covariate_data,nm_var=cov_data_full$nm_var,resuse=prd_ests$resuse,east=cov_data_full$east,north=cov_data_full$north,
 				model_variable="loi",file=output_netcdf_file,out_mat_pred=prd_ests$out_mat_pred,out_mat_var=prd_ests$out_mat_var,
-				mod_formula=mod_sum$mod_formula,rmse=mod_sum$rmse,r2=mod_sum$r2)
+				mod_formula=mod_sum$mod_formula,rmse=mod_sum$rmse,r2=mod_sum$r2,covs.local=covs.local)
 	}
 	
 	return(mod_sum)
