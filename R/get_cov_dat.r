@@ -1,5 +1,5 @@
 
-get_cov_dat <- function(covariate_data,temp_netcdf_file,time_slices,newdat){
+get_cov_dat <- function(covariate_data,temp_netcdf_file,time_slices,newdat,covs.local){
 
     ##set up empty vectors for storage
     n_north = n_east= spat_res = nm_var = dunits = var_data_type = c()
@@ -9,12 +9,20 @@ get_cov_dat <- function(covariate_data,temp_netcdf_file,time_slices,newdat){
     
     for(i in 1:length(covariate_data)){
 
-        #download the files temporarily to enable easy reading in - R currently does not support OpenDAP, this "downloading" may change in the future
-        #download.file(url=covariate_data[[i]]$linkfile, destfile=paste(temp_netcdf_file,cn,sep=""), mode="wb")
+        
+		if(covs.local){
+			cov_dat <- nc_open(covariate_data[[i]]$linkfile)
+		}else{
+			
+			#download the files temporarily to enable easy reading in - R currently does not support OpenDAP, this "downloading" may change in the future
+        download.file(url=covariate_data[[i]]$linkfile, destfile=paste(temp_netcdf_file,cn,sep=""), mode="wb")
 
         #open the connection to the current netcdf file
-        #cov_dat <- nc_open(paste(temp_netcdf_file,cn,sep=""))
-			cov_dat <- nc_open(covariate_data[[i]]$linkfile)
+        cov_dat <- nc_open(paste(temp_netcdf_file,cn,sep=""))
+		
+		}
+
+			
 
         ## loop over the variables to be extracted from the current netcdf file
         for(vn in 1:length(covariate_data[[i]]$vars)){

@@ -37,7 +37,7 @@ write_2_netcdf=TRUE
 	data_fam_resp <- def_dist_fam(dat=dat,rand_grp=rand_grp,mult_year=mult_year,model_variable=model_variable,data_type="Cont")
 
 	print("Extracting covariates and defining model formula") 
-	cov_data_full <- get_cov_dat(covariate_data=covariate_data,temp_netcdf_file=temp_netcdf_file,time_slices=time_slices,newdat=data_fam_resp$newdat)
+	cov_data_full <- get_cov_dat(covariate_data=covariate_data,temp_netcdf_file=temp_netcdf_file,time_slices=time_slices,newdat=data_fam_resp$newdat,covs.local=covs.local)
 	  
 	form <- construct_form(nm_var=cov_data_full$nm_var,var_data_type=cov_data_full$var_data_type)
 	  
