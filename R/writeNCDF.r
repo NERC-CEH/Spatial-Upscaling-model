@@ -6,14 +6,12 @@ writeNCDF <- function(covariate_data,nm_var,resuse,north,east,model_variable,fil
     v=unlist(covariate_data)
     fl=v[which(names(v)[1:which(v==nm_var[resuse])]=="linkfile")]
     
-		if(!covs.local){
-			download.file(url=fl,destfile="tempres.nc", mode="wb")
-
-		
-			## open up the connection to the file to use as a template
-			cov_dat <- nc_open("tempres.nc")
+		if(covs.local){
+			cov_dat <- nc_open(fl)
 		}else{
-		cov_dat <- nc_open(fl)
+		download.file(url=fl,destfile="tempres.nc", mode="wb")
+		## open up the connection to the file to use as a template
+		cov_dat <- nc_open("tempres.nc")
 		}
 		
 		output_netcdf_file = file
